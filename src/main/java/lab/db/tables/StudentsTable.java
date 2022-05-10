@@ -11,6 +11,9 @@ package lab.db.tables;
  import java.util.List;
  import java.util.Objects;
  import java.util.Optional;
+
+import javax.xml.stream.events.StartElement;
+
 import static lab.utils.Utils.sqlDateToDate;
 import static lab.utils.Utils.dateToSqlDate;
  import lab.utils.Utils;
@@ -153,8 +156,20 @@ import static lab.utils.Utils.dateToSqlDate;
         }
     }
 
-     @Override
-     public boolean update(final Student student) {
-         throw new UnsupportedOperationException("TODO");
-     }
+    @Override
+    public boolean update(final Student student) {
+        final String query = "UPDATE " + TABLE_NAME + " SET firstName = ?, lastName = ?, birthday = ? where id = ?";
+        try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
+            statement.setString(1, student.getFirstName());
+            statement.setString(2, student.getLastName());
+            statement.setDate(3, dateToSqlDate(student.getBirthday().orElse(null)));
+            statement.setInt(4, student.getId());
+            if (statement.executeUpdate() == 0) {
+                return false;
+            }
+            return true;
+        } catch (final SQLException e) {
+            return false;
+        }
+    }
  }
