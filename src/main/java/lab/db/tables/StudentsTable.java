@@ -11,7 +11,7 @@ package lab.db.tables;
  import java.util.List;
  import java.util.Objects;
  import java.util.Optional;
-
+import static lab.utils.Utils.sqlDateToDate;
  import lab.utils.Utils;
  import lab.db.Table;
  import lab.model.Student;
@@ -66,34 +66,56 @@ package lab.db.tables;
       * @param resultSet a ResultSet from which the Student(s) will be extracted
       * @return a List of all the students in the ResultSet
       */
-     private List<Student> readStudentsFromResultSet(final ResultSet resultSet) {
-         // Create an empty list, then
-         // Inside a loop you should:
-         //      1. Call resultSet.next() to advance the pointer and check there are still rows to fetch
-         //      2. Use the getter methods to get the value of the columns
-         //      3. After retrieving all the data create a Student object
-         //      4. Put the student in the List
-         // Then return the list with all the found students
+    private List<Student> readStudentsFromResultSet(final ResultSet resultSet) {
+        // Create an empty list, then
+        // Inside a loop you should:
+        //      1. Call resultSet.next() to advance the pointer and check there are still rows to fetch
+        //      2. Use the getter methods to get the value of the columns
+        //      3. After retrieving all the data create a Student object
+        //      4. Put the student in the List
+        // Then return the list with all the found students
 
-         // Helpful resources:
-         // https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
-         // https://docs.oracle.com/javase/tutorial/jdbc/basics/retrieving.html
-         throw new UnsupportedOperationException("TODO");
-     }
+        // Helpful resources:
+        // https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
+        // https://docs.oracle.com/javase/tutorial/jdbc/basics/retrieving.html
+        final var newList = new ArrayList<Student>();
+        try {
+            while (resultSet.next()) {
+                final var id = resultSet.getInt("id");
+                final var firstName = resultSet.getString("firstName");
+                final var lastName = resultSet.getString("lastName");
+                final Optional<Date> birthday = Optional.ofNullable(sqlDateToDate(resultSet.getDate("birthday")));
+                newList.add(new Student(id, firstName, lastName, birthday));
+            }
+            return newList;
+        } catch (final SQLException e) {
+            throw new IllegalArgumentException("Error from given result set.");
+        }
+    }
 
-     @Override
-     public List<Student> findAll() {
-         throw new UnsupportedOperationException("TODO");
-     }
+    @Override
+    public List<Student> findAll() {
+        final String query = "SELECT * FROM " + TABLE_NAME;
+        try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
+            return this.readStudentsFromResultSet(statement.executeQuery());
+        } catch (final SQLException e) {
+            return null;
+        }
+    }
 
      public List<Student> findByBirthday(final Date date) {
          throw new UnsupportedOperationException("TODO");
      }
 
-     @Override
-     public boolean dropTable() {
-         throw new UnsupportedOperationException("TODO");
-     }
+    @Override
+    public boolean dropTable() {
+        try (final Statement statement = this.connection.createStatement()) {
+            statement.executeUpdate("DROP TABLE " + TABLE_NAME);
+            return true;
+        } catch (final SQLException e) {
+            return false;
+        }
+    }
 
      @Override
      public boolean save(final Student student) {
