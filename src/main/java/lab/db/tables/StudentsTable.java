@@ -51,7 +51,14 @@ package lab.db.tables;
 
      @Override
      public Optional<Student> findByPrimaryKey(final Integer id) {
-         throw new UnsupportedOperationException("TODO");
+       final String query = "SELECT * FROM " + TABLE_NAME + " WHERE id = ?";
+        try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
+            statement.setInt(1, id);
+            final ResultSet resultSet = statement.executeQuery();
+            return readStudentsFromResultSet(resultSet).stream().findFirst();
+        } catch (final SQLException e) {
+            return Optional.empty();
+        }
      }
 
      /**
