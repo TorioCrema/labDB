@@ -107,7 +107,7 @@ import static lab.utils.Utils.dateToSqlDate;
     public List<Student> findByBirthday(final Date date) {
         final String query = "SELECT * FROM " + TABLE_NAME + " WHERE birthday = ?";
         try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
-            statement.setString(1, date.toString());
+            statement.setDate(1, dateToSqlDate(date));
             return this.readStudentsFromResultSet(statement.executeQuery());
         } catch (final SQLException e) {
             return null;
