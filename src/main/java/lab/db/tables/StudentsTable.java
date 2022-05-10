@@ -12,6 +12,7 @@ package lab.db.tables;
  import java.util.Objects;
  import java.util.Optional;
 import static lab.utils.Utils.sqlDateToDate;
+import static lab.utils.Utils.dateToSqlDate;
  import lab.utils.Utils;
  import lab.db.Table;
  import lab.model.Student;
@@ -123,10 +124,20 @@ import static lab.utils.Utils.sqlDateToDate;
         }
     }
 
-     @Override
-     public boolean save(final Student student) {
-         throw new UnsupportedOperationException("TODO");
-     }
+    @Override
+    public boolean save(final Student student) {
+        final String query = "INSERT INTO " + TABLE_NAME + " VALUES(?, ?, ?, ?)";
+        try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
+            statement.setInt(1, student.getId());
+            statement.setString(2, student.getFirstName());
+            statement.setString(3, student.getLastName());
+            statement.setDate(4, dateToSqlDate(student.getBirthday().orElse(null)));
+            statement.executeUpdate();
+            return true;
+        } catch (final SQLException e) {
+            return false;
+        }
+    }
 
      @Override
      public boolean delete(final Integer id) {
