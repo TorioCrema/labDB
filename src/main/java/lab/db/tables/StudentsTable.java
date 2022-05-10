@@ -139,10 +139,19 @@ import static lab.utils.Utils.dateToSqlDate;
         }
     }
 
-     @Override
-     public boolean delete(final Integer id) {
-         throw new UnsupportedOperationException("TODO");
-     }
+    @Override
+    public boolean delete(final Integer id) {
+        final String query = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
+        try (final PreparedStatement statement = this.connection.prepareStatement(query)) {
+            statement.setInt(1, id);
+            if (statement.executeUpdate() == 0) {
+                return false;
+            }
+            return true;
+        } catch (final SQLException e) {
+            return false;
+        }
+    }
 
      @Override
      public boolean update(final Student student) {
